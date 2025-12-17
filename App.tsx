@@ -11,6 +11,15 @@ const App: React.FC = () => {
   const [selectedCountry, setSelectedCountry] = useState<Country>(SUPPORTED_COUNTRIES[0]); // Default HK
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loadingHolidays, setLoadingHolidays] = useState(false);
+  const [selectedTimezone, setSelectedTimezone] = useState<string>('local');
+
+  // Load preferred timezone from localStorage on mount
+  useEffect(() => {
+    const savedTimezone = localStorage.getItem('preferredTimezone');
+    if (savedTimezone) {
+      setSelectedTimezone(savedTimezone);
+    }
+  }, []);
 
   // Load holidays when month or country changes
   useEffect(() => {
@@ -63,9 +72,18 @@ const App: React.FC = () => {
     }
   };
 
+  const handleTimezoneChange = (timezoneId: string) => {
+    setSelectedTimezone(timezoneId);
+    // Save to localStorage for persistence
+    localStorage.setItem('preferredTimezone', timezoneId);
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-primary-500/30">
-      <Header />
+    <div className="min-h-screen bg-app-bg text-app-text font-sans selection:bg-primary-500/30 transition-colors duration-300">
+      <Header
+        selectedTimezone={selectedTimezone}
+        onTimezoneChange={handleTimezoneChange}
+      />
       
       <main className="max-w-[1600px] mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-120px)] min-h-[800px]">
@@ -73,26 +91,28 @@ const App: React.FC = () => {
           {/* Main Calendar Area (8 cols) */}
           <section className="lg:col-span-8 h-full flex flex-col relative">
             {loadingHolidays && (
-              <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1 bg-slate-800/80 backdrop-blur rounded-full text-xs text-primary-400 border border-slate-700">
+              <div className="absolute top-4 right-4 z-20 flex items-center gap-2 px-3 py-1 bg-app-surface/80 backdrop-blur rounded-full text-xs text-primary-400 border border-app-border shadow-sm">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 正在同步{selectedCountry.name}假期...
               </div>
             )}
-            <CalendarView 
+            <CalendarView
               currentDate={currentDate}
               onMonthChange={setCurrentDate}
               events={events}
               selectedCountry={selectedCountry}
               onAddEvent={handleAddEvent}
+              selectedTimezone={selectedTimezone}
             />
           </section>
 
           {/* Sidebar Assistant (4 cols) */}
           <section className="lg:col-span-4 h-full">
-            <BizAssistant 
+            <BizAssistant
               selectedCountry={selectedCountry}
               onSelectCountry={setSelectedCountry}
               events={events}
+              selectedTimezone={selectedTimezone}
             />
           </section>
 

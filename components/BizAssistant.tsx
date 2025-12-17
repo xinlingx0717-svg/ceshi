@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { SUPPORTED_COUNTRIES, Country, CalendarEvent } from '../types';
 import { askAssistant, fetchExchangeRate, ExchangeRateResult } from '../services/gemini';
-import { Languages, Info, MessageSquare, Send, Calendar, Banknote, ArrowRightLeft, RefreshCw, ExternalLink } from 'lucide-react';
+import { Languages, Info, MessageSquare, Send, Calendar, Banknote, ArrowRightLeft, RefreshCw, ExternalLink, Clock, Globe } from 'lucide-react';
+import TimezoneSelector from './TimezoneSelector';
 
 interface BizAssistantProps {
   selectedCountry: Country;
   onSelectCountry: (c: Country) => void;
   events: CalendarEvent[];
+  selectedTimezone: string;
 }
 
-const BizAssistant: React.FC<BizAssistantProps> = ({ selectedCountry, onSelectCountry, events }) => {
+const BizAssistant: React.FC<BizAssistantProps> = ({ selectedCountry, onSelectCountry, events, selectedTimezone }) => {
   const [activeTab, setActiveTab] = useState<'info' | 'chat' | 'exchange'>('info');
   
   // Chat State
@@ -69,10 +71,10 @@ const BizAssistant: React.FC<BizAssistantProps> = ({ selectedCountry, onSelectCo
 
   return (
     <div className="flex flex-col h-full gap-4">
-      
+
       {/* Country Selector */}
-      <div className="bg-slate-850 border border-slate-700 rounded-xl p-4 shadow-lg">
-        <h3 className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">当前业务区域</h3>
+      <div className="bg-app-card border border-app-border rounded-xl p-4 shadow-lg transition-colors duration-300">
+        <h3 className="text-app-muted text-xs font-semibold uppercase tracking-wider mb-3">当前业务区域</h3>
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-2">
           {SUPPORTED_COUNTRIES.map(country => (
             <button
@@ -81,7 +83,7 @@ const BizAssistant: React.FC<BizAssistantProps> = ({ selectedCountry, onSelectCo
               className={`flex flex-col items-center justify-center p-2 rounded-lg border transition-all ${
                 selectedCountry.code === country.code
                   ? 'bg-primary-600/20 border-primary-500 text-white'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                  : 'bg-app-surface border-app-border text-app-subtext hover:bg-app-highlight hover:text-app-text'
               }`}
             >
               <span className="text-xl mb-1">{country.flag}</span>
@@ -91,9 +93,31 @@ const BizAssistant: React.FC<BizAssistantProps> = ({ selectedCountry, onSelectCo
         </div>
       </div>
 
+      {/* Timezone Selector */}
+      <div className="bg-app-card border border-app-border rounded-xl p-4 shadow-lg transition-colors duration-300">
+        <div className="flex items-center gap-2 mb-3">
+          <Globe className="w-4 h-4 text-app-muted" />
+          <h3 className="text-app-muted text-xs font-semibold uppercase tracking-wider">时区设置</h3>
+        </div>
+        <TimezoneSelector
+          selectedTimezone={selectedTimezone}
+          onTimezoneChange={() => {}} // Will be handled by App component
+          compact={false}
+        />
+        <div className="mt-3 p-3 bg-app-surface/30 rounded-lg">
+          <div className="flex items-center gap-2 text-xs text-app-subtext">
+            <Clock className="w-3 h-3" />
+            <span>选定时区将影响时间显示和商务提醒</span>
+          </div>
+          <div className="mt-2 text-xs text-app-muted">
+            当前选区: {selectedCountry.timezone.name} (UTC{selectedCountry.timezoneOffset >= 0 ? '+' : ''}{selectedCountry.timezoneOffset})
+          </div>
+        </div>
+      </div>
+
       {/* Dashboard Tabs */}
-      <div className="flex-1 bg-slate-850 border border-slate-700 rounded-xl shadow-lg flex flex-col overflow-hidden">
-        <div className="flex border-b border-slate-800">
+      <div className="flex-1 bg-app-card border border-app-border rounded-xl shadow-lg flex flex-col overflow-hidden transition-colors duration-300">
+        <div className="flex border-b border-app-border">
           <button
             onClick={() => setActiveTab('info')}
             className={`flex-1 py-3 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
